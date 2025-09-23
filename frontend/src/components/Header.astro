@@ -1,0 +1,144 @@
+---
+// Astro component frontmatter (server-side)
+---
+
+<!-- Top Bar -->
+<div class="bg-black text-white text-sm py-2 px-4">
+  <div class="max-w-7xl mx-auto flex justify-between items-center">
+    <div class="flex items-center space-x-4">
+      <span>+18</span>
+      <span>Jogo Responsável</span>
+      <span>Termos e Condições</span>
+      <span>Suporte</span>
+    </div>
+    <div class="flex items-center space-x-4">
+      <span>FAQ</span>
+    </div>
+  </div>
+</div>
+
+<!-- Hero Section -->
+<div class="bg-black text-white py-12 px-4">
+  <div class="max-w-7xl mx-auto text-center">
+    <h1 class="text-4xl md:text-6xl font-bold mb-4">
+      Bem-vindo ao <span class="text-purple-500">Corinthians Online</span>
+    </h1>
+    <p class="text-xl md:text-2xl text-gray-300 mb-8">
+      A casa de apostas oficial da Fiel Torcida. Aposte com paixão, ganhe com emoção!
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <button class="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition-colors font-semibold">
+        Começar Agora
+      </button>
+      <button class="border border-white text-white px-8 py-3 rounded-lg hover:bg-white hover:text-black transition-colors font-semibold">
+        Saiba Mais
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Main Header -->
+<header class="bg-white border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="flex items-center justify-between py-4">
+      <!-- Logo -->
+      <a href="/" class="flex items-center space-x-3">
+        <div class="bg-black text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl">
+          SC
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">CORINTHIANS <span class="text-purple-600">ONLINE</span></h1>
+        </div>
+      </a>
+
+      <!-- Desktop Navigation -->
+      <nav class="hidden md:flex items-center space-x-8">
+        <a href="/apostas-esportivas" class="text-gray-900 hover:text-purple-600 transition-colors font-medium">
+          Apostas Esportivas
+        </a>
+        <a href="/cassino" class="text-gray-900 hover:text-purple-600 transition-colors font-medium">
+          Cassino
+        </a>
+        <a href="/ao-vivo" class="text-gray-900 hover:text-purple-600 transition-colors font-medium">
+          Ao Vivo
+        </a>
+        <a href="/promocoes" class="text-gray-900 hover:text-purple-600 transition-colors font-medium">
+          Promoções
+        </a>
+        <a href="/noticias" class="text-gray-900 hover:text-purple-600 transition-colors font-medium">
+          Notícias
+        </a>
+      </nav>
+
+      <!-- User Actions -->
+      <div class="flex items-center space-x-4">
+        <button class="border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-50 transition-colors">
+          Entrar
+        </button>
+        <button class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition-colors">
+          Cadastrar
+        </button>
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <button 
+        class="md:hidden p-2"
+        id="mobile-menu-button"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div id="mobile-menu" class="md:hidden bg-white border-t border-gray-200 hidden">
+    <nav class="px-4 py-4 space-y-4">
+      <a href="/apostas-esportivas" class="block text-gray-900 hover:text-purple-600 transition-colors">
+        Apostas Esportivas
+      </a>
+      <a href="/cassino" class="block text-gray-900 hover:text-purple-600 transition-colors">
+        Cassino
+      </a>
+      <a href="/ao-vivo" class="block text-gray-900 hover:text-purple-600 transition-colors">
+        Ao Vivo
+      </a>
+      <a href="/promocoes" class="block text-gray-900 hover:text-purple-600 transition-colors">
+        Promoções
+      </a>
+      <a href="/noticias" class="block text-gray-900 hover:text-purple-600 transition-colors">
+        Notícias
+      </a>
+    </nav>
+  </div>
+</header>
+
+<script>
+  // Client-side script for mobile menu toggle
+  document.addEventListener('DOMContentLoaded', function() {
+    const menuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    
+    if (menuButton && mobileMenu) {
+      menuButton.addEventListener('click', function() {
+        mobileMenu.classList.toggle('hidden');
+      });
+    }
+  });
+</script>
+
+<style>
+  @keyframes scroll {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+  
+  .animate-scroll {
+    animation: scroll 20s linear infinite;
+  }
+</style>

@@ -1,0 +1,681 @@
+---
+export const prerender = false;
+
+import Layout from '../layouts/Layout.astro';
+import Sidebar from '../components/Sidebar.astro';
+import AnchorNav from '../components/AnchorNav.astro';
+import ShareButtons from '../components/ShareButtons.astro';
+import OptimizedImage from '../components/OptimizedImage.astro';
+import JsonLd from '../components/JsonLd.astro';
+import { getAllPostSlugs, getPostBySlug, getImageUrl, formatDate, renderBlocks, getPostDate } from '../lib/strapi';
+import { getRelatedPostsByCategory, getAdjacentPosts } from '../lib/strapi-paginated';
+import { getRelatedPostsByCategoryOptimized, getAdjacentPostsOptimized, convertToLegacyFormat } from '../lib/strapi-optimized';
+import { decodeHtmlEntities, checkTrailingSlashRedirect } from '../lib/utils';
+
+export async function getStaticPaths() {
+  // Buscar apenas os slugs (muito mais rápido)
+  const slugs = await getAllPostSlugs();
+
+  return slugs.map((slug) => ({
+    params: { slug }
+  }));
+}
+
+const { slug } = Astro.params;
+
+// Verificar se a URL atual termina com slash, se não, redirecionar
+const redirectResponse = checkTrailingSlashRedirect(Astro);
+if (redirectResponse) {
+  return redirectResponse;
+}
+
+// Buscar o post completo pelo slug
+const post = await getPostBySlug(slug);
+
+if (!post) {
+  return Astro.redirect('/404');
+}
+
+// Se o slug encontrado é diferente do slug solicitado (match parcial), redirecionar
+if (post.slug !== slug) {
+  return Astro.redirect(`/apostas/${post.slug}`, 301);
+}
+
+const routePrefix = import.meta.env.PUBLIC_ROUTE_PREFIX || 'apostas';
+
+// Layout único - detectar se é simples para aplicar estilos específicos
+const isSimpleLayout = (post as any).single === true;
+
+// Importação de todos os CSSs necessários (sem condição)
+// global.css já é carregado pelo Layout.astro
+await import('../styles/typography.css');
+await import('../styles/content.css');
+await import('../styles/components.css');
+await import('../styles/layout.css');
+
+// CSS específicos do layout single
+await import('../styles/pages/single.css');
+await import('../styles/components/sidebar.css');
+await import('../styles/components/richtext.css');
+
+// Função para gerar schema do artigo (BlogPosting ou NewsArticle)
+function generateArticleSchema(post: any, currentUrl: string) {
+  if (!post) return null;
+
+  const baseUrl = import.meta.env.PUBLIC_BASE_URL || `${Astro.url.protocol}//${Astro.url.host}`;
+  const strapiBaseUrl = import.meta.env.PUBLIC_STRAPI_URL || 'http://localhost:1337';
+  
+  // Determinar tipo de schema baseado no SEO - suporte a ambas as variações
+  const seoSchemaType = post.seo?.schematype?.toLowerCase();
+  const schemaType = (seoSchemaType === 'newsarticle' || seoSchemaType === 'newsarticles') ? 'NewsArticle' : 'BlogPosting';
+  
+  // URL da imagem - prioridade: metaImage > coverImage
+  let imageUrl = null;
+  let imageWidth = null;
+  let imageHeight = null;
+  
+  if (post.seo?.metaImage?.url) {
+    imageUrl = getImageUrl(post.seo.metaImage, 'large');
+    
+    // Usar formato large se disponível para dimensões
+    const largeFormat = post.seo.metaImage.formats?.large;
+    if (largeFormat) {
+      imageWidth = largeFormat.width;
+      imageHeight = largeFormat.height;
+    }
+  } else if (post.coverImage?.url) {
+    imageUrl = getImageUrl(post.coverImage, 'large');
+    
+    // Usar formato large se disponível para dimensões
+    const largeFormat = post.coverImage.formats?.large;
+    if (largeFormat) {
+      imageWidth = largeFormat.width;
+      imageHeight = largeFormat.height;
+    }
+  }
+
+  // Construir keywords combinando SEO keywords com tags
+  let keywords: string[] = [];
+  if (post.seo?.metaKeywords) {
+    keywords.push(post.seo.metaKeywords);
+  }
+  if (post.tags && post.tags.length > 0) {
+    const tagNames = post.tags.map((tag: any) => tag.name).filter(Boolean);
+    keywords = keywords.concat(tagNames);
+  }
+  
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": schemaType,
+    "headline": post.seo?.metaTitle || post.title,
+    "description": post.seo?.metaDescription || post.excerpt || `${post.title}`,
+    ...(keywords.length > 0 && { "keywords": keywords.join(', ') }),
+    "url": currentUrl,
+    "datePublished": post.published || post.createdAt,
+    "dateModified": post.updated || post.updatedAt,
+    "inLanguage": "pt-BR",
+    ...(post.authors?.[0] && {
+      "author": {
+        "@type": "Person",
+        "name": post.authors[0].name,
+        "url": `${baseUrl}/autor/${post.authors[0].slug}`
+      }
+    }),
+    ...(imageUrl && {
+      "image": {
+        "@type": "ImageObject",
+        "url": imageUrl,
+        ...(imageWidth && { "width": imageWidth }),
+        ...(imageHeight && { "height": imageHeight }),
+        "caption": post.coverImage?.alternativeText || post.title
+      }
+    }),
+    "publisher": {
+      "@type": "Organization",
+      "@id": `${baseUrl}#organization`
+    },
+    ...(post.category && {
+      "articleSection": post.category.name
+    }),
+    ...(schemaType === 'NewsArticle' && {
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": currentUrl
+      }
+    })
+  };
+
+  // Remove campos undefined/null para limpeza
+  return JSON.parse(JSON.stringify(schema, (key, value) => {
+    if (value === undefined || value === null) {
+      return undefined;
+    }
+    return value;
+  }));
+}
+
+// obter data do post (necessária para buscas otimizadas)
+const postDate = getPostDate(post);
+
+// Buscar posts relacionados - agora otimizado com endpoint /api/noticias/listagem!
+let relatedPosts = [];
+if (post.category?.id) {
+  try {
+    const optimizedRelated = await getRelatedPostsByCategoryOptimized(post.category.id.toString(), post.id.toString(), 4);
+    if (optimizedRelated && optimizedRelated.length > 0) {
+      relatedPosts = optimizedRelated.map(convertToLegacyFormat);
+    } else {
+      throw new Error('Endpoint otimizado retornou dados vazios');
+    }
+  } catch (error) {
+    relatedPosts = await getRelatedPostsByCategory(post.category.id.toString(), post.id.toString(), 4);
+  }
+}
+
+// Buscar post anterior e próximo - agora otimizado com endpoint /api/noticias/listagem!
+let prevPost = null;
+let nextPost = null;
+try {
+  const optimizedAdjacent = await getAdjacentPostsOptimized(postDate, post.id.toString());
+  if (optimizedAdjacent.prevPost || optimizedAdjacent.nextPost) {
+    prevPost = optimizedAdjacent.prevPost ? convertToLegacyFormat(optimizedAdjacent.prevPost) : null;
+    nextPost = optimizedAdjacent.nextPost ? convertToLegacyFormat(optimizedAdjacent.nextPost) : null;
+  } else {
+    throw new Error('Endpoint otimizado não retornou posts adjacentes');
+  }
+} catch (error) {
+  const adjacentResults = await getAdjacentPosts(postDate, post.id.toString());
+  prevPost = adjacentResults.prevPost;
+  nextPost = adjacentResults.nextPost;
+}
+
+// buscar caption
+const caption = post.coverImage?.alternativeText || ''; // Usando optional chaining para evitar erros
+/* const imageUrl = getImageUrl(post.coverImage, 'large'); // Não está sendo usado */
+
+// Gerar schema do artigo
+const currentUrl = Astro.url?.href || `${import.meta.env.PUBLIC_BASE_URL || 'https://strapiklaos.klaos.curitiba.br'}/apostas/${post.slug}`;
+const articleSchema = generateArticleSchema(post, currentUrl);
+
+// Preparar dados de SEO para o layout
+const strapiBaseUrl = import.meta.env.PUBLIC_STRAPI_URL || 'http://localhost:1337';
+
+// Definir imagem Open Graph - prioridade: metaImage > coverImage
+let ogImageUrl = null;
+if (post.seo?.metaImage?.url) {
+  const metaImageUrl = post.seo.metaImage.url.startsWith('http') 
+    ? post.seo.metaImage.url 
+    : `${strapiBaseUrl}${post.seo.metaImage.url}`;
+  
+  // Usar formato large se disponível
+  const largeFormat = post.seo.metaImage.formats?.large;
+  ogImageUrl = largeFormat 
+    ? (largeFormat.url.startsWith('http') ? largeFormat.url : `${strapiBaseUrl}${largeFormat.url}`)
+    : metaImageUrl;
+} else if (post.coverImage?.url) {
+  const coverImageUrl = post.coverImage.url.startsWith('http') 
+    ? post.coverImage.url 
+    : `${strapiBaseUrl}${post.coverImage.url}`;
+  
+  // Usar formato large se disponível
+  const largeFormat = post.coverImage.formats?.large;
+  ogImageUrl = largeFormat 
+    ? (largeFormat.url.startsWith('http') ? largeFormat.url : `${strapiBaseUrl}${largeFormat.url}`)
+    : coverImageUrl;
+}
+
+// Preparar dados de preload para imagem principal
+let preloadImageUrl = null;
+let preloadImageSrcset = null;
+
+if (post.coverImage) {
+  // URL principal para preload (medium como padrão para mobile)
+  const mediumFormat = post.coverImage.formats?.medium;
+  if (mediumFormat?.url) {
+    preloadImageUrl = mediumFormat.url.startsWith('http') 
+      ? mediumFormat.url 
+      : `${strapiBaseUrl}${mediumFormat.url}`;
+  }
+  
+  // Construir srcset para preload
+  const srcsetParts = [];
+  if (post.coverImage.formats?.small?.url) {
+    const smallUrl = post.coverImage.formats.small.url.startsWith('http') 
+      ? post.coverImage.formats.small.url 
+      : `${strapiBaseUrl}${post.coverImage.formats.small.url}`;
+    srcsetParts.push(`${smallUrl} ${post.coverImage.formats.small.width}w`);
+  }
+  if (mediumFormat?.url) {
+    const mediumUrl = mediumFormat.url.startsWith('http') 
+      ? mediumFormat.url 
+      : `${strapiBaseUrl}${mediumFormat.url}`;
+    srcsetParts.push(`${mediumUrl} ${mediumFormat.width}w`);
+  }
+  if (post.coverImage.formats?.large?.url) {
+    const largeUrl = post.coverImage.formats.large.url.startsWith('http') 
+      ? post.coverImage.formats.large.url 
+      : `${strapiBaseUrl}${post.coverImage.formats.large.url}`;
+    srcsetParts.push(`${largeUrl} ${post.coverImage.formats.large.width}w`);
+  }
+  
+  if (srcsetParts.length > 0) {
+    preloadImageSrcset = srcsetParts.join(', ');
+  }
+}
+---
+
+<Layout
+  title={post.seo?.metaTitle || post.title}
+  description={post.seo?.metaDescription || post.excerpt}
+  canonicalUrl={currentUrl}
+  ogImage={ogImageUrl || undefined}
+  ogType="article"
+  robots="index, follow"
+  customSchema={articleSchema}
+>
+  <!-- Preload da imagem principal para melhor LCP -->
+  {preloadImageUrl && preloadImageSrcset && (
+    <link
+      slot="head"
+      rel="preload"
+      as="image"
+      href={preloadImageUrl}
+      imagesrcset={preloadImageSrcset}
+      imagesizes="(max-width: 640px) 100vw, (max-width: 1024px) 75vw, 800px"
+    />
+  )}
+
+  <!-- Container principal - com atributo para CSS condicional -->
+  <div class="single-page-container" data-simple-layout={isSimpleLayout}>
+    <!-- Anchor Navigation esquerda -->
+    <aside class="anchor-nav-column">
+      <AnchorNav />
+    </aside>
+
+    <!-- Conteúdo principal -->
+    <article class="article-wrapper">
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ol class="breadcrumb-list">
+          <li class="breadcrumb-item">
+            <a href={`/${routePrefix}/`}>Página inicial</a>
+          </li>
+          <li class="breadcrumb-separator">›</li>
+          <li class="breadcrumb-item">
+            {post.category && (
+              <a href={`/categoria/${post.category.slug}`}>{post.category.name}</a>
+            )}
+          </li>
+          <li class="breadcrumb-separator">›</li>
+          <li class="breadcrumb-current">{post.title.substring(0, 30)}</li>
+        </ol>
+      </nav>
+
+      <!-- Article Header -->
+      <header class="article-header">
+        {post.category && (
+          <div class="article-category-badge">{post.category.name}</div>
+        )}
+
+        <h1 class="article-title">{post.title}</h1>
+
+        {post.excerpt && (
+          <p class="article-excerpt">{decodeHtmlEntities(post.excerpt)}</p>
+        )}
+
+        <div class="article-meta">
+          {post.authors?.[0] && (
+            <>
+              <a href={`/autor/${post.authors[0].slug}`} class="article-author">
+                {post.authors[0].name}
+              </a>
+              <span>•</span>
+            </>
+          )}
+          <time datetime={postDate}>
+            {formatDate(postDate)}
+          </time>
+          {post.updatedAt !== post.createdAt && (
+            <span>, atualizado {formatDate(post.updatedAt)}</span>
+          )}
+        </div>
+      </header>
+
+      <!-- Share Section -->
+      <div class="share-section">
+        <ShareButtons
+          url={currentUrl}
+          title={post.title}
+          description={post.excerpt || ''}
+        />
+      </div>
+
+      <!-- JSON-LD Schema (injetado no head via slot) -->
+      <JsonLd slot="head" type="Article" data={articleSchema} />
+          
+          <a 
+            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(currentUrl)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="share-button share-twitter"
+            aria-label="Compartilhar no Twitter"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+              <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+            </svg>
+          </a>
+          
+          <a 
+            href={`https://t.me/share/url?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(post.title)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="share-button share-telegram"
+            aria-label="Compartilhar no Telegram"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+              <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      {post.coverImage && (
+        <figure class="article-featured-image">
+          <OptimizedImage
+            media={post.coverImage}
+            alt={post.coverImage?.alternativeText || post.title}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 75vw, 800px"
+            loading="eager"
+            priority={true}
+            isFeatured={true}
+            class="featured-img"
+          />
+          {caption && (
+            <figcaption class="image-caption">{caption}</figcaption>
+          )}
+        </figure>
+      )}
+
+      <!-- Article Content -->
+      {post.content && (
+        <div class="article-content" set:html={renderBlocks(post.content)} />
+      )}
+
+      <!-- Tags -->
+      {post.tags && post.tags.length > 0 && (
+        <div class="tags-section">
+          <span class="tags-label">Tags:</span>
+          <div class="tags-list">
+            {post.tags.map((tag) => (
+              <a href={`/tag/${tag.slug}`} class="tag-item">
+                {tag.name}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <!-- Aviso de Jogo Responsável -->
+      <div class="responsible-gaming-notice">
+        <span>+18 | Jogue com responsabilidade | Aplicam-se os Termos e Condições</span>
+      </div>
+      
+      <!-- Navigation Buttons -->
+      <nav class="article-navigation">
+        {prevPost ? (
+          <a href={`/apostas/${prevPost.slug}`} class="nav-button prev">
+            <div>
+              <span class="nav-button-label">← Anterior</span>
+              <span class="nav-button-title">{prevPost.title}</span>
+            </div>
+          </a>
+        ) : <div></div>}
+
+        {nextPost ? (
+          <a href={`/apostas/${nextPost.slug}`} class="nav-button next">
+            <div>
+              <span class="nav-button-label">Próximo →</span>
+              <span class="nav-button-title">{nextPost.title}</span>
+            </div>
+          </a>
+        ) : <div></div>}
+      </nav>
+      
+      <!-- Related Articles -->
+      {relatedPosts.length > 0 && (
+        <section class="related-section">
+          <h2 class="related-title">📰 Tá bombando</h2>
+          <div class="related-grid">
+            {relatedPosts.map((related) => (
+              <a href={`/apostas/${related.slug}`} class="related-item">
+                {related.coverImage && (
+                  <OptimizedImage
+                    media={related.coverImage}
+                    alt={related.title}
+                    sizes="(max-width: 640px) 50vw, 150px"
+                    loading="lazy"
+                    class="related-item-image"
+                  />
+                )}
+                <div class="related-item-content">
+                  {related.category && (
+                    <div class="related-item-category">{related.category.name}</div>
+                  )}
+                  <h3 class="related-item-title">{related.title}</h3>
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+    </article>
+  </div> <!-- Fecha single-page-container -->
+
+  <!-- Sidebar Slot -->
+  <Sidebar slot="sidebar" />
+
+  <!-- JSON-LD Schema -->
+  <JsonLd slot="head" type="Article" data={articleSchema} />
+</Layout>
+
+<style>
+
+<style>
+  /* Estrutura de 3 colunas para single page */
+  .single-page-container {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 2rem;
+    max-width: 100%;
+    position: relative;
+  }
+
+  /* Para layout simples, usar apenas 1 coluna centralizada */
+  .single-page-container:has(.article-wrapper:only-child) {
+    grid-template-columns: 1fr;
+    max-width: 800px;
+    margin: 0 auto;
+    gap: 0;
+  }
+
+  .anchor-nav-column {
+    position: sticky;
+    top: 100px !important;
+    height: auto;
+    left: 23px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+  }
+
+  .article-wrapper {
+    min-width: 0; /* Previne overflow */
+  }
+
+  /* Fix para CLS no conteúdo do artigo */
+  .article-content {
+    line-height: 1.6;
+    font-size: 16px;
+    min-height: 200px; /* Altura mínima para evitar layout shift */
+    container-type: inline-size; /* Container queries support */
+  }
+
+  /* Prevenir CLS das imagens dentro do conteúdo */
+  .article-content img {
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 16/9; /* Proporção padrão para evitar layout shift */
+    object-fit: cover;
+    border-radius: 8px;
+    margin: 1rem 0;
+    display: block;
+    background-color: #f5f5f5; /* Placeholder visual */
+    transition: opacity 0.3s ease;
+  }
+
+  /* Para iframes e vídeos também */
+  .article-content iframe,
+  .article-content video {
+    max-width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: 8px;
+    margin: 1rem 0;
+    display: block;
+    background-color: #f5f5f5;
+  }
+
+  /* Headers com espaçamento adequado - não sobrescrever single.css */
+  .article-content h1 {
+    line-height: 1.2;
+    font-weight: bold;
+    margin: 2.5rem 0 1.2rem 0; /* H1 com mais espaço */
+  }
+  
+  .article-content h4,
+  .article-content h5,
+  .article-content h6 {
+    line-height: 1.2;
+    font-weight: bold;
+    margin: 1.5rem 0 0.8rem 0; /* Espaçamento consistente para h4-h6 */
+  }
+  
+  /* h2 e h3 já têm espaçamento definido no single.css */
+
+  /* Listas com espaçamento natural */
+  .article-content ul,
+  .article-content ol {
+    padding-left: 2rem;
+    /* Remove margin e height forçados que causam CLS */
+    /* O CSS global e do single.css já controlam o espaçamento */
+  }
+
+  /* Blockquotes com estilo natural */
+  .article-content blockquote {
+    padding: 1rem;
+    border-left: 4px solid var(--color-primary);
+    background-color: #f9f9f9;
+    /* Remove margin e height forçados que causam CLS */
+    /* O CSS global já controla o espaçamento */
+  }
+
+  /* Tabelas responsivas */
+  .article-content table {
+    width: 100%;
+    border-collapse: collapse;
+    /* Remove margin e height forçados que causam CLS */
+    /* O CSS global já controla o espaçamento */
+  }
+
+  /* Imagem principal do artigo */
+  .article-featured-image img {
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    border-radius: 12px;
+    background-color: #f5f5f5;
+    transition: opacity 0.3s ease;
+  }
+
+  /* Responsivo */
+  @media (max-width: 1200px) {
+    .single-page-container {
+      grid-template-columns: 1fr;
+    }
+
+    .anchor-nav-column {
+      display: none;
+    }
+  }
+
+  /* Imagem principal do artigo - prevenir CLS */
+  .article-featured-image {
+    margin: 2rem 0;
+    position: relative;
+  }
+
+  .article-featured-image img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    border-radius: 12px;
+  }
+
+  /* === CSS Condicional para Layout Simples === */
+  /* Ocultar sidebar quando for layout simples */
+  [data-simple-layout="true"] ~ :global(.single-sidebar-area) {
+    display: none !important;
+  }
+
+  /* Ocultar navegação de artigos quando for layout simples */
+  [data-simple-layout="true"] .article-navigation {
+    display: none !important;
+  }
+
+  /* Container com largura limitada para layout simples */
+  [data-simple-layout="true"] :global(.main-container) {
+    max-width: 800px !important;
+    margin: 0 auto;
+  }
+
+  /* Layout normal - sidebar visível e container expandido */
+  [data-simple-layout="false"] :global(.main-container) {
+    max-width: 1400px;
+  }
+
+  /* === Resto dos estilos === */
+
+  /* === Melhorias mínimas nos botões de compartilhamento === */
+  .share-button {
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+  }
+
+  .share-button:hover,
+  .share-button:focus-visible {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    outline: none;
+  }
+
+  .share-button:focus-visible {
+    border-color: #fff;
+    outline: 2px solid #0066cc;
+    outline-offset: 2px;
+  }
+
+  /* Melhorar contraste das cores dos botões */
+  .share-whatsapp:hover {
+    background-color: #128C7E;
+  }
+
+  .share-facebook:hover {
+    background-color: #166FE5;
+  }
+
+  .share-twitter:hover {
+    background-color: #0d8bd9;
+  }
+
+  .share-telegram:hover {
+    background-color: #006FA0;
+  }
+</style>
