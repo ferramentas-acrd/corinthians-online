@@ -386,6 +386,10 @@ export interface ApiAuthorAuthor extends Struct.CollectionTypeSchema {
   };
   attributes: {
     avatar: Schema.Attribute.Media<'images'>;
+    betting_predictions: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::betting-prediction.betting-prediction'
+    >;
     bio: Schema.Attribute.Text;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -401,6 +405,219 @@ export interface ApiAuthorAuthor extends Struct.CollectionTypeSchema {
     noticias: Schema.Attribute.Relation<'manyToMany', 'api::noticia.noticia'>;
     publishedAt: Schema.Attribute.DateTime;
     slug: Schema.Attribute.UID<'name'> & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiBannerBanner extends Struct.CollectionTypeSchema {
+  collectionName: 'banners';
+  info: {
+    description: 'Banners e an\u00FAncios para o site';
+    displayName: 'Banner Publicit\u00E1rio';
+    pluralName: 'banners';
+    singularName: 'banner';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    active: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    bettingHouse: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::betting-house.betting-house'
+    >;
+    clicks: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    ctaText: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 50;
+      }>;
+    description: Schema.Attribute.Text &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 300;
+      }>;
+    endDate: Schema.Attribute.DateTime;
+    image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+    impressions: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    link: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::banner.banner'
+    > &
+      Schema.Attribute.Private;
+    popunderUrl: Schema.Attribute.String;
+    position: Schema.Attribute.Enumeration<
+      ['header', 'sidebar', 'footer', 'between_posts', 'popup', 'floating']
+    > &
+      Schema.Attribute.DefaultTo<'sidebar'>;
+    priority: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'title'> & Schema.Attribute.Required;
+    startDate: Schema.Attribute.DateTime;
+    targetBlank: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    title: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 200;
+      }>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiBettingHouseBettingHouse
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'betting_houses';
+  info: {
+    description: 'Casas de apostas parceiras e recomendadas';
+    displayName: 'Casa de Apostas';
+    pluralName: 'betting-houses';
+    singularName: 'betting-house';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    active: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    affiliateLink: Schema.Attribute.String & Schema.Attribute.Required;
+    cons: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
+    corinthiansPartner: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 500;
+      }>;
+    featured: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::betting-house.betting-house'
+    > &
+      Schema.Attribute.Private;
+    logo: Schema.Attribute.Media<'images'>;
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 100;
+      }>;
+    order: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    pros: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
+    publishedAt: Schema.Attribute.DateTime;
+    rating: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 5;
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
+    review: Schema.Attribute.Blocks;
+    seo: Schema.Attribute.Component<'shared.seo', false>;
+    slug: Schema.Attribute.UID<'name'> & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    welcomeBonus: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 200;
+      }>;
+  };
+}
+
+export interface ApiBettingPredictionBettingPrediction
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'betting_predictions';
+  info: {
+    description: 'Palpites e progn\u00F3sticos de apostas';
+    displayName: 'Palpite de Apostas';
+    pluralName: 'betting-predictions';
+    singularName: 'betting-prediction';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    analysis: Schema.Attribute.Blocks & Schema.Attribute.Required;
+    authors: Schema.Attribute.Relation<'manyToMany', 'api::author.author'>;
+    competition: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 100;
+      }>;
+    confidence: Schema.Attribute.Enumeration<['baixa', 'media', 'alta']> &
+      Schema.Attribute.DefaultTo<'media'>;
+    coverImage: Schema.Attribute.Media<'images'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    featured: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::betting-prediction.betting-prediction'
+    > &
+      Schema.Attribute.Private;
+    match: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 100;
+      }>;
+    matchDate: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    odds: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 100;
+          min: 1.01;
+        },
+        number
+      >;
+    prediction: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 200;
+      }>;
+    predictionType: Schema.Attribute.Enumeration<
+      [
+        'resultado',
+        'gols',
+        'handicap',
+        'ambas_marcam',
+        'cartoes',
+        'escanteios',
+        'primeiro_gol',
+        'intervalo',
+      ]
+    > &
+      Schema.Attribute.DefaultTo<'resultado'>;
+    publishedAt: Schema.Attribute.DateTime;
+    recommendedHouse: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::betting-house.betting-house'
+    >;
+    result: Schema.Attribute.Enumeration<['pendente', 'acerto', 'erro']> &
+      Schema.Attribute.DefaultTo<'pendente'>;
+    seo: Schema.Attribute.Component<'shared.seo', false>;
+    slug: Schema.Attribute.UID<'title'> & Schema.Attribute.Required;
+    sport: Schema.Attribute.Enumeration<
+      ['futebol', 'basquete', 'volei', 'tenis', 'outros']
+    > &
+      Schema.Attribute.DefaultTo<'futebol'>;
+    tags: Schema.Attribute.Relation<'manyToMany', 'api::tag.tag'>;
+    title: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 200;
+      }>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -462,6 +679,76 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiGameGame extends Struct.CollectionTypeSchema {
+  collectionName: 'games';
+  info: {
+    description: 'Jogos e partidas';
+    displayName: 'Game';
+    pluralName: 'games';
+    singularName: 'game';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    awayScore: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    awayTeam: Schema.Attribute.Relation<'manyToOne', 'api::team.team'> &
+      Schema.Attribute.Required;
+    broadcastInfo: Schema.Attribute.Text;
+    competition: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 100;
+      }>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    featured: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    homeScore: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    homeTeam: Schema.Attribute.Relation<'manyToOne', 'api::team.team'> &
+      Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::game.game'> &
+      Schema.Attribute.Private;
+    matchDate: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    round: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 50;
+      }>;
+    slug: Schema.Attribute.UID<'matchDate'>;
+    stadium: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 100;
+      }>;
+    status: Schema.Attribute.Enumeration<
+      ['Agendado', 'Ao vivo', 'Finalizado', 'Adiado', 'Cancelado']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'Agendado'>;
+    ticketUrl: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 255;
+      }>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiNoticiaNoticia extends Struct.CollectionTypeSchema {
   collectionName: 'noticias';
   info: {
@@ -500,6 +787,106 @@ export interface ApiNoticiaNoticia extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiPlayerPlayer extends Struct.CollectionTypeSchema {
+  collectionName: 'players';
+  info: {
+    description: 'Jogadores do elenco';
+    displayName: 'Player';
+    pluralName: 'players';
+    singularName: 'player';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    active: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    age: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 50;
+          min: 16;
+        },
+        number
+      >;
+    biography: Schema.Attribute.Text;
+    contractUntil: Schema.Attribute.Date;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    featured: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    height: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 2.2;
+          min: 1.5;
+        },
+        number
+      >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::player.player'
+    > &
+      Schema.Attribute.Private;
+    marketValue: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 100;
+      }>;
+    nationality: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 50;
+      }> &
+      Schema.Attribute.DefaultTo<'Brasil'>;
+    number: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 99;
+          min: 1;
+        },
+        number
+      >;
+    photo: Schema.Attribute.Media<'images'>;
+    position: Schema.Attribute.Enumeration<
+      [
+        'Goleiro',
+        'Lateral-direito',
+        'Lateral-esquerdo',
+        'Zagueiro',
+        'Volante',
+        'Meio-campista',
+        'Meia-atacante',
+        'Ponta-direita',
+        'Ponta-esquerda',
+        'Centroavante',
+      ]
+    > &
+      Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'name'> & Schema.Attribute.Required;
+    socialMedia: Schema.Attribute.JSON;
+    team: Schema.Attribute.Relation<'manyToOne', 'api::team.team'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    weight: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 120;
+          min: 50;
+        },
+        number
+      >;
+  };
+}
+
 export interface ApiTagTag extends Struct.CollectionTypeSchema {
   collectionName: 'tags';
   info: {
@@ -512,6 +899,10 @@ export interface ApiTagTag extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    betting_predictions: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::betting-prediction.betting-prediction'
+    >;
     color: Schema.Attribute.String & Schema.Attribute.DefaultTo<'#6b7280'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -1138,8 +1529,13 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::author.author': ApiAuthorAuthor;
+      'api::banner.banner': ApiBannerBanner;
+      'api::betting-house.betting-house': ApiBettingHouseBettingHouse;
+      'api::betting-prediction.betting-prediction': ApiBettingPredictionBettingPrediction;
       'api::category.category': ApiCategoryCategory;
+      'api::game.game': ApiGameGame;
       'api::noticia.noticia': ApiNoticiaNoticia;
+      'api::player.player': ApiPlayerPlayer;
       'api::tag.tag': ApiTagTag;
       'api::team.team': ApiTeamTeam;
       'plugin::content-releases.release': PluginContentReleasesRelease;

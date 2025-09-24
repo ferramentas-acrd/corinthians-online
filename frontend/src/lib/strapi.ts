@@ -54,6 +54,76 @@ export interface Tag {
   slug: string;
 }
 
+export interface BettingHouse {
+  id: number;
+  documentId: string;
+  name: string;
+  slug: string;
+  logo?: Media;
+  description?: string;
+  welcomeBonus?: string;
+  affiliateLink: string;
+  rating: number;
+  featured: boolean;
+  corinthiansPartner: boolean;
+  pros?: string[];
+  cons?: string[];
+  review?: ContentBlock[];
+  active: boolean;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt?: string;
+}
+
+export interface BettingPrediction {
+  id: number;
+  documentId: string;
+  title: string;
+  slug: string;
+  match: string;
+  prediction: string;
+  predictionType: 'resultado' | 'gols' | 'handicap' | 'ambas_marcam' | 'cartoes' | 'escanteios' | 'primeiro_gol' | 'intervalo';
+  odds?: number;
+  confidence: 'baixa' | 'media' | 'alta';
+  analysis: ContentBlock[];
+  matchDate: string;
+  sport: 'futebol' | 'basquete' | 'volei' | 'tenis' | 'outros';
+  competition?: string;
+  recommendedHouse?: BettingHouse;
+  result: 'pendente' | 'acerto' | 'erro';
+  featured: boolean;
+  tags?: Tag[];
+  authors?: Author[];
+  coverImage?: Media;
+  seo?: SEO;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt?: string;
+}
+
+export interface Banner {
+  id: number;
+  documentId: string;
+  title: string;
+  slug: string;
+  image: Media;
+  link?: string;
+  popunderUrl?: string;
+  ctaText?: string;
+  description?: string;
+  position: 'header' | 'sidebar' | 'footer' | 'between_posts' | 'popup' | 'floating';
+  priority: number;
+  startDate?: string;
+  endDate?: string;
+  active: boolean;
+  targetBlank: boolean;
+  bettingHouse?: BettingHouse;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt?: string;
+}
+
 interface Author {
   id: number;
   documentId?: string;
@@ -102,8 +172,18 @@ async function fetchAPI(endpoint: string, populate: boolean = false): Promise<an
     url += '?populate=*';
   }
 
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  // Adicionar token se disponível
+  const apiToken = import.meta.env.STRAPI_API_TOKEN || '7072b12f5e7a00bcaff69290682a55525c87bc62e1acaaea22ddb82a6ac0c1366beb3c9dac171866e1fb0ffc8ea2fa7119d0d1179a13e1469f462287846116dc65cb8ab086a8d783a346b1e038333d0cf9a1a13148ef095523d2e63eba08107386ed6b6c61e71d27889b3f3aab4513840e71a102d679a36c20582cb9be9bea0d';
+  if (apiToken) {
+    headers.Authorization = `Bearer ${apiToken}`;
+  }
+
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, { headers });
 
     if (!response.ok) {
       console.error(`API error: ${response.status} for ${url}`);
@@ -448,7 +528,105 @@ export function getPostUpdateDate(post: Post): string {
 
 
 
+// -------- BETTING HOUSES --------
+export async function getBettingHouses(): Promise<BettingHouse[]> {
+  try {
+    const response = await fetchAPI('/betting-houses?populate=logo&sort=rating:desc');
+    return response.data || [];
+  } catch (error) {
+    console.error('Error in getBettingHouses:', error);
+    return [];
+  }
+}
+
+export async function getFeaturedBettingHouses(limit = 6): Promise<BettingHouse[]> {
+  try {
+    const response = await fetchAPI(`/betting-houses?populate=logo&filters[featured][$eq]=true&sort=rating:desc&pagination[limit]=${limit}`);
+    return response.data || [];
+  } catch (error) {
+    console.error('Error in getFeaturedBettingHouses:', error);
+    return [];
+  }
+}
+
+export async function getBettingHouseBySlug(slug: string): Promise<BettingHouse | null> {
+  try {
+    const response = await fetchAPI(`/betting-houses?populate=logo&filters[slug][$eq]=${slug}`);
+    const houses = response.data || [];
+    return houses.length > 0 ? houses[0] : null;
+  } catch (error) {
+    console.error('Error in getBettingHouseBySlug:', error);
+    return null;
+  }
+}
+
+// -------- BETTING PREDICTIONS --------
+export async function getBettingPredictions(): Promise<BettingPrediction[]> {
+  try {
+    const response = await fetchAPI('/betting-predictions?populate[coverImage]=*&populate[recommendedHouse][populate][logo]=*&populate[tags]=*&populate[authors]=*&sort=matchDate:desc');
+    return response.data || [];
+  } catch (error) {
+    console.error('Error in getBettingPredictions:', error);
+    return [];
+  }
+}
+
+export async function getFeaturedBettingPredictions(limit = 5): Promise<BettingPrediction[]> {
+  try {
+    const response = await fetchAPI(`/betting-predictions?populate[coverImage]=*&populate[recommendedHouse][populate][logo]=*&populate[tags]=*&populate[authors]=*&filters[featured][$eq]=true&sort=matchDate:desc&pagination[limit]=${limit}`);
+    return response.data || [];
+  } catch (error) {
+    console.error('Error in getFeaturedBettingPredictions:', error);
+    return [];
+  }
+}
+
+export async function getUpcomingBettingPredictions(limit = 10): Promise<BettingPrediction[]> {
+  try {
+    const now = new Date().toISOString();
+    const response = await fetchAPI(`/betting-predictions?populate[coverImage]=*&populate[recommendedHouse][populate][logo]=*&populate[tags]=*&populate[authors]=*&filters[matchDate][$gte]=${now}&sort=matchDate:asc&pagination[limit]=${limit}`);
+    return response.data || [];
+  } catch (error) {
+    console.error('Error in getUpcomingBettingPredictions:', error);
+    return [];
+  }
+}
+
+export async function getBettingPredictionBySlug(slug: string): Promise<BettingPrediction | null> {
+  try {
+    const response = await fetchAPI(`/betting-predictions?populate[coverImage]=*&populate[recommendedHouse][populate][logo]=*&populate[tags]=*&populate[authors]=*&filters[slug][$eq]=${slug}`);
+    const predictions = response.data || [];
+    return predictions.length > 0 ? predictions[0] : null;
+  } catch (error) {
+    console.error('Error in getBettingPredictionBySlug:', error);
+    return null;
+  }
+}
+
 // -------- BANNERS --------
+
+export async function getActiveBanners(position?: string): Promise<Banner[]> {
+  try {
+    const now = new Date().toISOString();
+    let endpoint = `/banners?populate[image]=*&populate[bettingHouse][populate][logo]=*&filters[active][$eq]=true&sort=priority:desc`;
+    
+    if (position) {
+      endpoint += `&filters[position][$eq]=${position}`;
+    }
+    
+    // Filter by date range if dates are set
+    endpoint += `&filters[$or][0][startDate][$null]=true&filters[$or][1][startDate][$lte]=${now}`;
+    endpoint += `&filters[$or][0][endDate][$null]=true&filters[$or][1][endDate][$gte]=${now}`;
+    
+    const response = await fetchAPI(endpoint);
+    return response.data || [];
+  } catch (error) {
+    console.error('Error in getActiveBanners:', error);
+    return [];
+  }
+}
+
+// -------- LEGACY BANNERS (keeping for compatibility) --------
 interface BannerImageFormat {
   url: string;
   width: number;
@@ -494,7 +672,7 @@ export interface Banner {
 const bannersCache: Map<string, { data: Banner[], time: number }> = new Map();
 const BANNERS_CACHE_DURATION = 2 * 60 * 1000; // 2 minutos
 
-export async function getBanners(local?: string): Promise<Banner[]> {
+export async function getBannersWithCache(local?: string): Promise<Banner[]> {
   const cacheKey = local || 'all';
   const now = Date.now();
 

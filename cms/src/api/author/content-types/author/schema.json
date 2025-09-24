@@ -38,6 +38,12 @@
       "relation": "manyToMany",
       "target": "api::noticia.noticia",
       "inversedBy": "authors"
+    },
+    "betting_predictions": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::betting-prediction.betting-prediction",
+      "inversedBy": "authors"
     }
   }
 }

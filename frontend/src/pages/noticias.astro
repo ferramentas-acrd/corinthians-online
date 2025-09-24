@@ -2,6 +2,17 @@
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { getNoticias, type NoticiaData } from '../lib/database';
+import { formatDate } from '../lib/strapi';
+
+// Fetch data directly from database
+let posts: NoticiaData[] = [];
+try {
+  posts = await getNoticias(20); // Load 20 articles for the news archive
+  console.log('✅ Posts loaded on /noticias page:', posts.length);
+} catch (error) {
+  console.error('❌ Error loading data from database:', error);
+}
 ---
 
 <Layout title="Notícias - Corinthians Online">
@@ -30,120 +41,71 @@ import Footer from '../components/Footer.astro';
         <!-- Main Content -->
         <div class="lg:col-span-2">
           <!-- Featured News -->
-          <div class="mb-8">
-            <article class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-              <div class="h-64 bg-gray-200 flex items-center justify-center">
-                <span class="text-gray-500">Imagem Principal</span>
-              </div>
-              <div class="p-6">
-                <div class="flex items-center mb-4">
-                  <span class="bg-red-600 text-white px-3 py-1 rounded text-sm font-bold mr-3">
-                    DESTAQUE
-                  </span>
-                  <span class="text-sm text-gray-500">Há 30 minutos</span>
+          {posts.length > 0 && (
+            <div class="mb-8">
+              <article class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <div class="h-64 bg-gray-200 flex items-center justify-center">
+                  <span class="text-gray-500">Imagem Principal</span>
                 </div>
-                <h2 class="text-2xl font-bold mb-4">
-                  Corinthians fecha acordo para contratação de lateral-esquerdo internacional
-                </h2>
-                <p class="text-gray-600 mb-4">
-                  Clube paulista oficializa a chegada do jogador uruguaio que defendia time europeu. 
-                  Contrato será válido por quatro temporadas e atleta já está em São Paulo para 
-                  exames médicos e assinatura.
-                </p>
-                <div class="flex items-center justify-between">
-                  <span class="text-sm text-gray-500">Por João Silva</span>
-                  <a href="#" class="text-black font-semibold hover:underline">Ler mais →</a>
+                <div class="p-6">
+                  <div class="flex items-center mb-4">
+                    <span class="bg-red-600 text-white px-3 py-1 rounded text-sm font-bold mr-3">
+                      DESTAQUE
+                    </span>
+                    <span class="text-sm text-gray-500">{formatDate(posts[0].published_at || posts[0].created_at)}</span>
+                  </div>
+                  <h2 class="text-2xl font-bold mb-4">
+                    {posts[0].title}
+                  </h2>
+                  {posts[0].excerpt && (
+                    <p class="text-gray-600 mb-4">
+                      {posts[0].excerpt}
+                    </p>
+                  )}
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-500">Corinthians Online</span>
+                    <a href={`/${posts[0].slug}`} class="text-black font-semibold hover:underline">Ler mais →</a>
+                  </div>
                 </div>
-              </div>
-            </article>
-          </div>
+              </article>
+            </div>
+          )}
 
           <!-- News Grid -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <article class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-              <div class="h-48 bg-gray-200 flex items-center justify-center">
-                <span class="text-gray-500">Imagem</span>
-              </div>
-              <div class="p-4">
-                <div class="flex items-center mb-2">
-                  <span class="bg-black text-white px-2 py-1 rounded text-xs font-medium mr-2">
-                    Futebol
-                  </span>
-                  <span class="text-xs text-gray-500">Há 2 horas</span>
+            {posts.slice(1).map((post) => (
+              <article class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <div class="h-48 bg-gray-200 flex items-center justify-center">
+                  <span class="text-gray-500">Imagem</span>
                 </div>
-                <h3 class="font-bold text-lg mb-2">
-                  Preparação física: elenco inicia trabalhos para próxima temporada
-                </h3>
-                <p class="text-gray-600 text-sm mb-3">
-                  Jogadores se reapresentaram no CT Dr. Joaquim Grava para dar início aos trabalhos...
-                </p>
-                <span class="text-xs text-gray-500">Por Maria Santos</span>
-              </div>
-            </article>
-
-            <article class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-              <div class="h-48 bg-gray-200 flex items-center justify-center">
-                <span class="text-gray-500">Imagem</span>
-              </div>
-              <div class="p-4">
-                <div class="flex items-center mb-2">
-                  <span class="bg-black text-white px-2 py-1 rounded text-xs font-medium mr-2">
-                    Transferências
-                  </span>
-                  <span class="text-xs text-gray-500">Há 3 horas</span>
+                <div class="p-4">
+                  <div class="flex items-center mb-2">
+                    <span class="bg-black text-white px-2 py-1 rounded text-xs font-medium mr-2">
+                      Notícia
+                    </span>
+                    <span class="text-xs text-gray-500">{formatDate(post.published_at || post.created_at)}</span>
+                  </div>
+                  <h3 class="font-bold text-lg mb-2">
+                    <a href={`/${post.slug}`} class="hover:text-blue-600">
+                      {post.title}
+                    </a>
+                  </h3>
+                  {post.excerpt && (
+                    <p class="text-gray-600 text-sm mb-3">
+                      {post.excerpt.length > 100 ? post.excerpt.substring(0, 100) + '...' : post.excerpt}
+                    </p>
+                  )}
+                  <span class="text-xs text-gray-500">Por Corinthians Online</span>
                 </div>
-                <h3 class="font-bold text-lg mb-2">
-                  Clube monitora situação de meio-campista argentino
-                </h3>
-                <p class="text-gray-600 text-sm mb-3">
-                  Diretoria alvinegra acompanha jogador que pode ficar livre no mercado...
-                </p>
-                <span class="text-xs text-gray-500">Por Pedro Costa</span>
-              </div>
-            </article>
-
-            <article class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-              <div class="h-48 bg-gray-200 flex items-center justify-center">
-                <span class="text-gray-500">Imagem</span>
-              </div>
-              <div class="p-4">
-                <div class="flex items-center mb-2">
-                  <span class="bg-black text-white px-2 py-1 rounded text-xs font-medium mr-2">
-                    Feminino
-                  </span>
-                  <span class="text-xs text-gray-500">Há 4 horas</span>
-                </div>
-                <h3 class="font-bold text-lg mb-2">
-                  Corinthians Feminino se reforça para disputa da Libertadores
-                </h3>
-                <p class="text-gray-600 text-sm mb-3">
-                  Time comandado por Arthur Elias anuncia chegada de duas atletas...
-                </p>
-                <span class="text-xs text-gray-500">Por Ana Silva</span>
-              </div>
-            </article>
-
-            <article class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-              <div class="h-48 bg-gray-200 flex items-center justify-center">
-                <span class="text-gray-500">Imagem</span>
-              </div>
-              <div class="p-4">
-                <div class="flex items-center mb-2">
-                  <span class="bg-black text-white px-2 py-1 rounded text-xs font-medium mr-2">
-                    Base
-                  </span>
-                  <span class="text-xs text-gray-500">Há 5 horas</span>
-                </div>
-                <h3 class="font-bold text-lg mb-2">
-                  Sub-17 conquista título do campeonato estadual
-                </h3>
-                <p class="text-gray-600 text-sm mb-3">
-                  Garotos do Corinthians vencem final por 2x1 e levantam mais uma taça...
-                </p>
-                <span class="text-xs text-gray-500">Por Carlos Lima</span>
-              </div>
-            </article>
+              </article>
+            ))}
           </div>
+          
+          {posts.length === 0 && (
+            <div class="text-center py-8">
+              <p class="text-gray-500">Nenhuma notícia encontrada no momento.</p>
+            </div>
+          )}
 
           <!-- Load More -->
           <div class="mt-8 text-center">

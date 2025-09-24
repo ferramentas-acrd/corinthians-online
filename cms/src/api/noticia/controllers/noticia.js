@@ -7,6 +7,69 @@
 const { createCoreController } = require('@strapi/strapi').factories;
 
 module.exports = createCoreController('api::noticia.noticia', ({ strapi }) => ({
+  // Override default find to make it public
+  async find(ctx) {
+    console.log('🔍 Custom find method called for noticia');
+    
+    try {
+      const { data, meta } = await strapi.entityService.findMany('api::noticia.noticia', {
+        populate: {
+          coverImage: true,
+          category: true,
+          authors: {
+            populate: {
+              avatar: true
+            }
+          },
+          tags: true,
+          seo: true,
+        },
+        sort: { publishedAt: 'desc' },
+        filters: {
+          publishedAt: { $notNull: true }
+        },
+        ...ctx.query,
+      });
+
+      console.log(`✅ Found ${data?.length || 0} noticias`);
+      
+      return { data, meta };
+    } catch (error) {
+      console.error('❌ Error in custom find:', error);
+      throw error;
+    }
+  },
+
+  // Override findOne method
+  async findOne(ctx) {
+    console.log('🔍 Custom findOne method called for noticia');
+    
+    try {
+      const { id } = ctx.params;
+      
+      const entity = await strapi.entityService.findOne('api::noticia.noticia', id, {
+        populate: {
+          coverImage: true,
+          category: true,
+          authors: {
+            populate: {
+              avatar: true
+            }
+          },
+          tags: true,
+          seo: true,
+        },
+      });
+
+      console.log(`✅ Found noticia: ${entity?.title || 'N/A'}`);
+      
+      return { data: entity };
+    } catch (error) {
+      console.error('❌ Error in custom findOne:', error);
+      throw error;
+    }
+  },
+
   // Endpoint otimizado para listagem
   async listagem(ctx) {
     try {
