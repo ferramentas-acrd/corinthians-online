@@ -38,10 +38,10 @@ if (!post) {
 
 // Se o slug encontrado é diferente do slug solicitado (match parcial), redirecionar
 if (post.slug !== slug) {
-  return Astro.redirect(`/apostas/${post.slug}`, 301);
+  return Astro.redirect(`/noticias/${post.slug}`, 301);
 }
 
-const routePrefix = import.meta.env.PUBLIC_ROUTE_PREFIX || 'apostas';
+const routePrefix = import.meta.env.PUBLIC_ROUTE_PREFIX || 'noticias';
 
 // Layout único - detectar se é simples para aplicar estilos específicos
 const isSimpleLayout = (post as any).single === true;
@@ -194,7 +194,7 @@ const caption = post.coverImage?.alternativeText || ''; // Usando optional chain
 /* const imageUrl = getImageUrl(post.coverImage, 'large'); // Não está sendo usado */
 
 // Gerar schema do artigo
-const currentUrl = Astro.url?.href || `${import.meta.env.PUBLIC_BASE_URL || 'https://strapiklaos.klaos.curitiba.br'}/apostas/${post.slug}`;
+const currentUrl = Astro.url?.href || `${import.meta.env.PUBLIC_BASE_URL || 'http://localhost:4321'}/noticias/${post.slug}`;
 const articleSchema = generateArticleSchema(post, currentUrl);
 
 // Preparar dados de SEO para o layout
@@ -298,7 +298,7 @@ if (post.coverImage) {
       <nav class="breadcrumb" aria-label="Breadcrumb">
         <ol class="breadcrumb-list">
           <li class="breadcrumb-item">
-            <a href={`/${routePrefix}/`}>Página inicial</a>
+            <a href="/">Página inicial</a>
           </li>
           <li class="breadcrumb-separator">›</li>
           <li class="breadcrumb-item">
@@ -415,15 +415,15 @@ if (post.coverImage) {
         </div>
       )}
 
-      <!-- Aviso de Jogo Responsável -->
-      <div class="responsible-gaming-notice">
-        <span>+18 | Jogue com responsabilidade | Aplicam-se os Termos e Condições</span>
+      <!-- Aviso Editorial -->
+      <div class="editorial-notice">
+        <span>© Corinthians Online - Portal Oficial da Fiel | Todos os direitos reservados</span>
       </div>
       
       <!-- Navigation Buttons -->
       <nav class="article-navigation">
         {prevPost ? (
-          <a href={`/apostas/${prevPost.slug}`} class="nav-button prev">
+          <a href={`/${prevPost.slug}`} class="nav-button prev">
             <div>
               <span class="nav-button-label">← Anterior</span>
               <span class="nav-button-title">{prevPost.title}</span>
@@ -432,7 +432,7 @@ if (post.coverImage) {
         ) : <div></div>}
 
         {nextPost ? (
-          <a href={`/apostas/${nextPost.slug}`} class="nav-button next">
+          <a href={`/${nextPost.slug}`} class="nav-button next">
             <div>
               <span class="nav-button-label">Próximo →</span>
               <span class="nav-button-title">{nextPost.title}</span>
@@ -444,10 +444,10 @@ if (post.coverImage) {
       <!-- Related Articles -->
       {relatedPosts.length > 0 && (
         <section class="related-section">
-          <h2 class="related-title">📰 Tá bombando</h2>
+          <h2 class="related-title">📰 Leia também</h2>
           <div class="related-grid">
             {relatedPosts.map((related) => (
-              <a href={`/apostas/${related.slug}`} class="related-item">
+              <a href={`/${related.slug}`} class="related-item">
                 {related.coverImage && (
                   <OptimizedImage
                     media={related.coverImage}

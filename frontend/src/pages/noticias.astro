@@ -1,0 +1,206 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout title="Notícias - Corinthians Online">
+  <Header />
+  
+  <main class="flex-1">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+      <!-- Page Header -->
+      <div class="mb-8">
+        <h1 class="text-4xl font-bold mb-4">Notícias</h1>
+        <p class="text-gray-600">Acompanhe todas as novidades do Corinthians</p>
+      </div>
+
+      <!-- Filters -->
+      <div class="mb-8">
+        <div class="flex flex-wrap gap-4">
+          <button class="bg-black text-white px-4 py-2 rounded-lg">Todas</button>
+          <button class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50">Futebol</button>
+          <button class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50">Transferências</button>
+          <button class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50">Feminino</button>
+          <button class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50">Base</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Content -->
+        <div class="lg:col-span-2">
+          <!-- Featured News -->
+          <div class="mb-8">
+            <article class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <div class="h-64 bg-gray-200 flex items-center justify-center">
+                <span class="text-gray-500">Imagem Principal</span>
+              </div>
+              <div class="p-6">
+                <div class="flex items-center mb-4">
+                  <span class="bg-red-600 text-white px-3 py-1 rounded text-sm font-bold mr-3">
+                    DESTAQUE
+                  </span>
+                  <span class="text-sm text-gray-500">Há 30 minutos</span>
+                </div>
+                <h2 class="text-2xl font-bold mb-4">
+                  Corinthians fecha acordo para contratação de lateral-esquerdo internacional
+                </h2>
+                <p class="text-gray-600 mb-4">
+                  Clube paulista oficializa a chegada do jogador uruguaio que defendia time europeu. 
+                  Contrato será válido por quatro temporadas e atleta já está em São Paulo para 
+                  exames médicos e assinatura.
+                </p>
+                <div class="flex items-center justify-between">
+                  <span class="text-sm text-gray-500">Por João Silva</span>
+                  <a href="#" class="text-black font-semibold hover:underline">Ler mais →</a>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <!-- News Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <article class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <div class="h-48 bg-gray-200 flex items-center justify-center">
+                <span class="text-gray-500">Imagem</span>
+              </div>
+              <div class="p-4">
+                <div class="flex items-center mb-2">
+                  <span class="bg-black text-white px-2 py-1 rounded text-xs font-medium mr-2">
+                    Futebol
+                  </span>
+                  <span class="text-xs text-gray-500">Há 2 horas</span>
+                </div>
+                <h3 class="font-bold text-lg mb-2">
+                  Preparação física: elenco inicia trabalhos para próxima temporada
+                </h3>
+                <p class="text-gray-600 text-sm mb-3">
+                  Jogadores se reapresentaram no CT Dr. Joaquim Grava para dar início aos trabalhos...
+                </p>
+                <span class="text-xs text-gray-500">Por Maria Santos</span>
+              </div>
+            </article>
+
+            <article class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <div class="h-48 bg-gray-200 flex items-center justify-center">
+                <span class="text-gray-500">Imagem</span>
+              </div>
+              <div class="p-4">
+                <div class="flex items-center mb-2">
+                  <span class="bg-black text-white px-2 py-1 rounded text-xs font-medium mr-2">
+                    Transferências
+                  </span>
+                  <span class="text-xs text-gray-500">Há 3 horas</span>
+                </div>
+                <h3 class="font-bold text-lg mb-2">
+                  Clube monitora situação de meio-campista argentino
+                </h3>
+                <p class="text-gray-600 text-sm mb-3">
+                  Diretoria alvinegra acompanha jogador que pode ficar livre no mercado...
+                </p>
+                <span class="text-xs text-gray-500">Por Pedro Costa</span>
+              </div>
+            </article>
+
+            <article class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <div class="h-48 bg-gray-200 flex items-center justify-center">
+                <span class="text-gray-500">Imagem</span>
+              </div>
+              <div class="p-4">
+                <div class="flex items-center mb-2">
+                  <span class="bg-black text-white px-2 py-1 rounded text-xs font-medium mr-2">
+                    Feminino
+                  </span>
+                  <span class="text-xs text-gray-500">Há 4 horas</span>
+                </div>
+                <h3 class="font-bold text-lg mb-2">
+                  Corinthians Feminino se reforça para disputa da Libertadores
+                </h3>
+                <p class="text-gray-600 text-sm mb-3">
+                  Time comandado por Arthur Elias anuncia chegada de duas atletas...
+                </p>
+                <span class="text-xs text-gray-500">Por Ana Silva</span>
+              </div>
+            </article>
+
+            <article class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <div class="h-48 bg-gray-200 flex items-center justify-center">
+                <span class="text-gray-500">Imagem</span>
+              </div>
+              <div class="p-4">
+                <div class="flex items-center mb-2">
+                  <span class="bg-black text-white px-2 py-1 rounded text-xs font-medium mr-2">
+                    Base
+                  </span>
+                  <span class="text-xs text-gray-500">Há 5 horas</span>
+                </div>
+                <h3 class="font-bold text-lg mb-2">
+                  Sub-17 conquista título do campeonato estadual
+                </h3>
+                <p class="text-gray-600 text-sm mb-3">
+                  Garotos do Corinthians vencem final por 2x1 e levantam mais uma taça...
+                </p>
+                <span class="text-xs text-gray-500">Por Carlos Lima</span>
+              </div>
+            </article>
+          </div>
+
+          <!-- Load More -->
+          <div class="mt-8 text-center">
+            <button class="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50">
+              Carregar mais notícias
+            </button>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="lg:col-span-1">
+          <!-- Breaking News -->
+          <div class="bg-red-600 text-white p-4 rounded-lg mb-6">
+            <h3 class="font-bold mb-3">🚨 Urgente</h3>
+            <p class="text-sm">
+              Presidente convoca assembleia extraordinária para discussão do orçamento 2025
+            </p>
+          </div>
+
+          <!-- Most Read -->
+          <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+            <h3 class="font-bold text-lg mb-4">Mais Lidas</h3>
+            <div class="space-y-4">
+              <div class="flex items-start space-x-3">
+                <span class="bg-black text-white text-xs px-2 py-1 rounded font-bold">1</span>
+                <div>
+                  <p class="text-sm font-medium">Novo reforço chega para fortalecer defesa</p>
+                  <p class="text-xs text-gray-500 mt-1">1.2k visualizações</p>
+                </div>
+              </div>
+              <div class="flex items-start space-x-3">
+                <span class="bg-gray-600 text-white text-xs px-2 py-1 rounded font-bold">2</span>
+                <div>
+                  <p class="text-sm font-medium">Torcida organizada realiza protesto pacífico</p>
+                  <p class="text-xs text-gray-500 mt-1">987 visualizações</p>
+                </div>
+              </div>
+              <div class="flex items-start space-x-3">
+                <span class="bg-gray-600 text-white text-xs px-2 py-1 rounded font-bold">3</span>
+                <div>
+                  <p class="text-sm font-medium">Arena Corinthians recebe obras de modernização</p>
+                  <p class="text-xs text-gray-500 mt-1">856 visualizações</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Advertisement -->
+          <div class="bg-gray-100 rounded-lg p-6 text-center mb-6">
+            <div class="h-48 flex items-center justify-center">
+              <span class="text-gray-500">Publicidade</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>

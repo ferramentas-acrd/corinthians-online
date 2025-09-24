@@ -7,14 +7,15 @@ import Footer from '../components/Footer.astro';
 import { getHomePagePostsOptimized, convertToLegacyFormat } from '../lib/strapi-optimized';
 
 let posts = [];
-try {
-  const strapiPosts = await getHomePagePostsOptimized(12);
-  posts = convertToLegacyFormat(strapiPosts);
-} catch (error) {
-  console.error('Error fetching posts:', error);
-  // Use placeholder data when Strapi is not available
-  posts = [];
-}
+// Temporarily disabled Strapi calls until CMS is properly configured
+// try {
+//   const strapiPosts = await getHomePagePostsOptimized(12);
+//   posts = convertToLegacyFormat(strapiPosts);
+// } catch (error) {
+//   console.error('Error fetching posts:', error);
+//   // Use placeholder data when Strapi is not available
+//   posts = [];
+// }
 
 // Placeholder data for when Strapi doesn't have content yet
 const placeholderPosts = [
@@ -67,194 +68,228 @@ const featuredPost = finalPosts.find(post => post.featured) || {
 const latestPosts = finalPosts.slice(0, 4);
 ---
 
-<Layout title="Corinthians Online - A casa de apostas oficial da Fiel Torcida">
+<Layout title="Corinthians Online - Portal Oficial da Fiel Torcida">
   <Header />
   
   <main class="flex-1">
-    <!-- Betting Houses Section -->
-    <div class="bg-gray-100 py-12">
-      <div class="max-w-7xl mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-8">Melhores Casas de Apostas Parceiras</h2>
+    <div class="max-w-7xl mx-auto px-4 py-8">
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
         
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <!-- bet365 -->
-          <div class="bg-white rounded-lg p-6 border border-gray-200">
-            <div class="flex items-center justify-between mb-4">
-              <span class="bg-black text-white px-3 py-1 rounded text-sm font-bold">
-                01
-              </span>
-              <div class="flex text-yellow-400 text-sm">
-                ★★★★★ 4.9
+        <!-- Main Content Area -->
+        <div class="lg:col-span-3">
+          <!-- Featured News -->
+          <div class="mb-8">
+            <div class="relative bg-gray-900 rounded-lg overflow-hidden">
+              <div class="h-96 bg-gradient-to-r from-black to-gray-800 flex items-center">
+                <div class="p-8 text-white">
+                  <span class="bg-red-600 text-white px-3 py-1 rounded text-sm font-bold mb-4 inline-block">
+                    DESTAQUE
+                  </span>
+                  <h1 class="text-4xl font-bold mb-4">
+                    Corinthians anuncia reforço para temporada 2025
+                  </h1>
+                  <p class="text-xl text-gray-300 mb-6">
+                    Clube oficializa contratação de meio-campista argentino por 4 anos. 
+                    Jogador já está em São Paulo para exames médicos.
+                  </p>
+                  <div class="flex items-center text-sm">
+                    <span class="mr-4">Por João Silva</span>
+                    <span>Há 2 horas</span>
+                  </div>
+                </div>
               </div>
-            </div>
-            <h3 class="text-xl font-bold mb-2">bet365</h3>
-            <p class="text-gray-600 mb-4">100% até R$500 no primeiro depósito</p>
-            
-            <ul class="space-y-2 mb-6">
-              <li class="flex items-center text-sm">
-                <span class="text-green-600 mr-2">✓</span>
-                Odds competitivas
-              </li>
-              <li class="flex items-center text-sm">
-                <span class="text-green-600 mr-2">✓</span>
-                Streaming ao vivo
-              </li>
-              <li class="flex items-center text-sm">
-                <span class="text-green-600 mr-2">✓</span>
-                Cash out disponível
-              </li>
-            </ul>
-            
-            <div class="flex gap-3">
-              <button class="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded font-medium hover:bg-gray-300 transition-colors">
-                Cadastrar
-              </button>
-              <button class="flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded font-medium hover:bg-gray-50 transition-colors">
-                Review
-              </button>
             </div>
           </div>
 
-          <!-- Betano -->
-          <div class="bg-white rounded-lg p-6 border border-gray-200">
-            <div class="flex items-center justify-between mb-4">
-              <span class="bg-black text-white px-3 py-1 rounded text-sm font-bold">
-                02
+          <!-- Breaking News -->
+          <div class="bg-red-600 text-white p-4 rounded-lg mb-8">
+            <div class="flex items-center">
+              <span class="bg-white text-red-600 px-3 py-1 rounded font-bold text-sm mr-4">
+                URGENTE
               </span>
-              <div class="flex text-yellow-400 text-sm">
-                ★★★★★ 4.8
+              <div class="flex-1">
+                <p class="font-semibold">
+                  Presidente do Corinthians convoca assembleia extraordinária para próxima sexta-feira
+                </p>
               </div>
-            </div>
-            <h3 class="text-xl font-bold mb-2">Betano</h3>
-            <p class="text-gray-600 mb-4">Apostas grátis toda semana</p>
-            
-            <ul class="space-y-2 mb-6">
-              <li class="flex items-center text-sm">
-                <span class="text-green-600 mr-2">✓</span>
-                SuperOdds diárias
-              </li>
-              <li class="flex items-center text-sm">
-                <span class="text-green-600 mr-2">✓</span>
-                App para Android e iOS
-              </li>
-              <li class="flex items-center text-sm">
-                <span class="text-green-600 mr-2">✓</span>
-                Promoções exclusivas
-              </li>
-            </ul>
-            
-            <div class="flex gap-3">
-              <button class="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded font-medium hover:bg-gray-300 transition-colors">
-                Cadastrar
-              </button>
-              <button class="flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded font-medium hover:bg-gray-50 transition-colors">
-                Review
-              </button>
             </div>
           </div>
 
-          <!-- Sportingbet -->
-          <div class="bg-white rounded-lg p-6 border border-gray-200">
-            <div class="flex items-center justify-between mb-4">
-              <span class="bg-black text-white px-3 py-1 rounded text-sm font-bold">
-                03
-              </span>
-              <div class="flex text-yellow-400 text-sm">
-                ★★★★☆ 4.7
-              </div>
+          <!-- Latest News Grid -->
+          <div class="mb-8">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-3xl font-bold">Últimas Notícias</h2>
+              <a href="/noticias" class="text-black hover:text-gray-700 font-medium">
+                Ver Todas →
+              </a>
             </div>
-            <h3 class="text-xl font-bold mb-2">Sportingbet</h3>
-            <p class="text-gray-600 mb-4">Bônus de até R$750</p>
             
-            <ul class="space-y-2 mb-6">
-              <li class="flex items-center text-sm">
-                <span class="text-green-600 mr-2">✓</span>
-                Múltiplas turbinadas
-              </li>
-              <li class="flex items-center text-sm">
-                <span class="text-green-600 mr-2">✓</span>
-                Depósito via Pix
-              </li>
-              <li class="flex items-center text-sm">
-                <span class="text-green-600 mr-2">✓</span>
-                Suporte 24/7
-              </li>
-            </ul>
-            
-            <div class="flex gap-3">
-              <button class="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded font-medium hover:bg-gray-300 transition-colors">
-                Cadastrar
-              </button>
-              <button class="flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded font-medium hover:bg-gray-50 transition-colors">
-                Review
-              </button>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <article class="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                <div class="h-48 bg-gray-200 flex items-center justify-center">
+                  <span class="text-gray-500">Imagem da Notícia</span>
+                </div>
+                <div class="p-6">
+                  <div class="flex items-center mb-2">
+                    <span class="bg-black text-white px-2 py-1 rounded text-xs font-medium">
+                      Futebol
+                    </span>
+                  </div>
+                  <h3 class="font-bold text-lg mb-2 hover:text-gray-700 transition-colors cursor-pointer">
+                    Novo técnico do Sub-20 é apresentado no CT Dr. Joaquim Grava
+                  </h3>
+                  <p class="text-gray-600 mb-4 text-sm">
+                    Ex-jogador do clube assume comando da equipe com objetivo de formar novos talentos...
+                  </p>
+                  <div class="text-xs text-gray-500">
+                    Maria Santos • Há 3 horas
+                  </div>
+                </div>
+              </article>
+
+              <article class="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                <div class="h-48 bg-gray-200 flex items-center justify-center">
+                  <span class="text-gray-500">Imagem da Notícia</span>
+                </div>
+                <div class="p-6">
+                  <div class="flex items-center mb-2">
+                    <span class="bg-black text-white px-2 py-1 rounded text-xs font-medium">
+                      Transferências
+                    </span>
+                  </div>
+                  <h3 class="font-bold text-lg mb-2 hover:text-gray-700 transition-colors cursor-pointer">
+                    Corinthians negocia renovação com atacante titular
+                  </h3>
+                  <p class="text-gray-600 mb-4 text-sm">
+                    Diretoria busca acordo para manter jogador que se destacou na temporada...
+                  </p>
+                  <div class="text-xs text-gray-500">
+                    Pedro Costa • Há 4 horas
+                  </div>
+                </div>
+              </article>
+
+              <article class="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                <div class="h-48 bg-gray-200 flex items-center justify-center">
+                  <span class="text-gray-500">Imagem da Notícia</span>
+                </div>
+                <div class="p-6">
+                  <div class="flex items-center mb-2">
+                    <span class="bg-black text-white px-2 py-1 rounded text-xs font-medium">
+                      Arena
+                    </span>
+                  </div>
+                  <h3 class="font-bold text-lg mb-2 hover:text-gray-700 transition-colors cursor-pointer">
+                    Arena Corinthians recebe melhorias no sistema de som
+                  </h3>
+                  <p class="text-gray-600 mb-4 text-sm">
+                    Investimento visa proporcionar melhor experiência aos torcedores durante os jogos...
+                  </p>
+                  <div class="text-xs text-gray-500">
+                    Ana Silva • Há 5 horas
+                  </div>
+                </div>
+              </article>
+
+              <article class="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                <div class="h-48 bg-gray-200 flex items-center justify-center">
+                  <span class="text-gray-500">Imagem da Notícia</span>
+                </div>
+                <div class="p-6">
+                  <div class="flex items-center mb-2">
+                    <span class="bg-black text-white px-2 py-1 rounded text-xs font-medium">
+                      Feminino
+                    </span>
+                  </div>
+                  <h3 class="font-bold text-lg mb-2 hover:text-gray-700 transition-colors cursor-pointer">
+                    Corinthians Feminino estreia na Libertadores com vitória
+                  </h3>
+                  <p class="text-gray-600 mb-4 text-sm">
+                    Time comandado por Arthur Elias vence por 2x0 em casa na primeira rodada...
+                  </p>
+                  <div class="text-xs text-gray-500">
+                    Carlos Lima • Há 6 horas
+                  </div>
+                </div>
+              </article>
             </div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Live Betting Section -->
-    <div class="bg-white py-12">
-      <div class="max-w-7xl mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-8">Jogos do Corinthians - Apostas ao Vivo</h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- Game 1 -->
-          <div class="bg-white border border-gray-200 rounded-lg p-6">
-            <div class="flex items-center justify-between mb-4">
-              <span class="text-sm text-gray-600">Campeonato Brasileiro</span>
-              <span class="bg-red-600 text-white px-3 py-1 rounded text-sm font-bold">
-                AO VIVO - 65'
-              </span>
-            </div>
-            
-            <div class="text-center mb-6">
-              <h3 class="text-lg font-bold mb-2">Corinthians X Palmeiras</h3>
-            </div>
-            
-            <div class="grid grid-cols-3 gap-4 text-center">
-              <div class="bg-gray-50 p-3 rounded">
-                <div class="text-sm text-gray-600 mb-1">Casa</div>
-                <div class="text-xl font-bold">2.45</div>
+        <!-- Sidebar -->
+        <div class="lg:col-span-1">
+          <!-- Próximos Jogos -->
+          <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+            <h3 class="font-bold text-lg mb-4">Próximos Jogos</h3>
+            <div class="space-y-4">
+              <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <div class="text-sm">
+                  <div class="font-medium">Corinthians x Santos</div>
+                  <div class="text-gray-500">Brasileirão • Dom 18:00</div>
+                </div>
+                <div class="text-black font-bold text-sm">
+                  Arena
+                </div>
               </div>
-              <div class="bg-gray-50 p-3 rounded">
-                <div class="text-sm text-gray-600 mb-1">Empate</div>
-                <div class="text-xl font-bold">3.10</div>
+              <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <div class="text-sm">
+                  <div class="font-medium">Flamengo x Corinthians</div>
+                  <div class="text-gray-500">Copa do Brasil • Qua 21:30</div>
+                </div>
+                <div class="text-gray-600 text-sm">
+                  Fora
+                </div>
               </div>
-              <div class="bg-gray-50 p-3 rounded">
-                <div class="text-sm text-gray-600 mb-1">Visitante</div>
-                <div class="text-xl font-bold">2.85</div>
+              <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <div class="text-sm">
+                  <div class="font-medium">Corinthians x Palmeiras</div>
+                  <div class="text-gray-500">Brasileirão • Sáb 16:30</div>
+                </div>
+                <div class="text-black font-bold text-sm">
+                  Derby
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Game 2 -->
-          <div class="bg-white border border-gray-200 rounded-lg p-6">
-            <div class="flex items-center justify-between mb-4">
-              <span class="text-sm text-gray-600">Copa do Brasil</span>
-              <span class="bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold">
-                Hoje 21:30
-              </span>
+          <!-- Mais Lidas -->
+          <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+            <h3 class="font-bold text-lg mb-4">Mais Lidas</h3>
+            <div class="space-y-4">
+              <div class="flex items-start space-x-3">
+                <span class="bg-black text-white text-xs px-2 py-1 rounded font-bold">1</span>
+                <div>
+                  <p class="text-sm font-medium hover:text-gray-700 cursor-pointer">
+                    Corinthians acerta contratação de zagueiro internacional
+                  </p>
+                  <p class="text-xs text-gray-500 mt-1">Há 1 hora</p>
+                </div>
+              </div>
+              <div class="flex items-start space-x-3">
+                <span class="bg-gray-600 text-white text-xs px-2 py-1 rounded font-bold">2</span>
+                <div>
+                  <p class="text-sm font-medium hover:text-gray-700 cursor-pointer">
+                    Torcida organizada lança campanha solidária
+                  </p>
+                  <p class="text-xs text-gray-500 mt-1">Há 2 horas</p>
+                </div>
+              </div>
+              <div class="flex items-start space-x-3">
+                <span class="bg-gray-600 text-white text-xs px-2 py-1 rounded font-bold">3</span>
+                <div>
+                  <p class="text-sm font-medium hover:text-gray-700 cursor-pointer">
+                    Arena Corinthians bate novo recorde de público
+                  </p>
+                  <p class="text-xs text-gray-500 mt-1">Há 3 horas</p>
+                </div>
+              </div>
             </div>
-            
-            <div class="text-center mb-6">
-              <h3 class="text-lg font-bold mb-2">Corinthians X Flamengo</h3>
-            </div>
-            
-            <div class="grid grid-cols-3 gap-4 text-center">
-              <div class="bg-gray-50 p-3 rounded">
-                <div class="text-sm text-gray-600 mb-1">Casa</div>
-                <div class="text-xl font-bold">2.10</div>
-              </div>
-              <div class="bg-gray-50 p-3 rounded">
-                <div class="text-sm text-gray-600 mb-1">Empate</div>
-                <div class="text-xl font-bold">3.25</div>
-              </div>
-              <div class="bg-gray-50 p-3 rounded">
-                <div class="text-sm text-gray-600 mb-1">Visitante</div>
-                <div class="text-xl font-bold">3.40</div>
-              </div>
+          </div>
+
+          <!-- Banner Publicitário -->
+          <div class="bg-gray-100 rounded-lg p-6 text-center">
+            <div class="h-48 flex items-center justify-center">
+              <span class="text-gray-500">Espaço Publicitário</span>
             </div>
           </div>
         </div>
